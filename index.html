@@ -1,1 +1,880 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#fff2f7">
+<title>Squishy Hunting HQ ♡</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+ --pink:#f3a8c2;--pink2:#ffe4ee;--rose:#ad5274;
+ --ink:#543d49;--muted:#947e89;--bg:#fff8fb;
+ --line:#f1dce5;--white:#fff;--green:#eaf6ed;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(#fff0f6,#fffafd 350px);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,textarea,select{font:inherit}
+button{border:0;border-radius:13px;background:var(--pink);color:white;padding:11px 15px;font-weight:700;cursor:pointer}
+button.secondary{background:#fff0f5;color:var(--rose);border:1px solid var(--line)}
+button.danger{background:#a84e69}
+button.small{padding:7px 10px;font-size:12px}
+input,textarea,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:white;color:var(--ink)}
+textarea{min-height:85px;resize:vertical}
+label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}
+header{text-align:center;padding:25px 12px 15px}
+.logo{font-size:11px;letter-spacing:3px;color:var(--rose);font-weight:900}
+h1{font-family:Georgia,serif;color:var(--rose);font-size:31px;margin:7px 0}
+header p,.muted{color:var(--muted);font-size:13px}
+main{max-width:950px;margin:auto;padding:0 13px 90px}
+.panel{background:#ffffffed;border:1px solid var(--line);border-radius:20px;padding:17px;margin:12px 0;box-shadow:0 7px 24px #a75c7712}
+.hidden{display:none!important}
+.title{font-family:Georgia,serif;color:var(--rose);font-size:22px;margin:0 0 12px}
+.tabs{position:sticky;top:0;z-index:5;background:#fff9fcf5;backdrop-filter:blur(12px);display:flex;gap:5px;overflow:auto;padding:9px;border-bottom:1px solid var(--line)}
+.tabs button{background:transparent;color:var(--muted);border:1px solid transparent;white-space:nowrap;padding:9px 12px;font-size:12px}
+.tabs button.active{background:var(--pink2);color:var(--rose);border-color:var(--line)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row>*{flex:1;min-width:0}
+.between{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pill{display:inline-block;background:var(--pink2);color:var(--rose);border-radius:30px;padding:5px 9px;font-size:11px;font-weight:800}
+.item,.post{background:white;border:1px solid var(--line);border-radius:15px;padding:13px;margin:10px 0}
+.post h3{margin:7px 0}
+.post p{white-space:pre-wrap;line-height:1.45}
+.post img,.item img{width:100%;max-height:270px;object-fit:cover;border-radius:12px;margin-top:8px}
+.notice{padding:12px;border-radius:13px;background:#fff0f5;color:#8d4b67;font-size:13px;margin:10px 0}
+.good{background:var(--green);color:#477052}
+.bad{background:#fff0f0;color:#a34e55}
+.tiny{font-size:11px;color:var(--muted)}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.empty{text-align:center;padding:25px;color:var(--muted)}
+.auth{max-width:480px;margin:10px auto}
+.rules{height:145px;overflow:auto;border:1px solid var(--line);padding:12px;border-radius:12px;font-size:13px;line-height:1.5;background:#fff}
+.footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
+@media(min-width:700px){.tabs{justify-content:center}}
+</style>
+</head>
+<body>
+
+<header>
+ <div class="logo">♡ GREATER MANKATO COMMUNITY ♡</div>
+ <h1>Squishy Hunting HQ</h1>
+ <p>Your local home for squishy finds, sightings and collectors.</p>
+</header>
+
+<nav id="tabs" class="tabs hidden">
+ <button class="active" data-page="feed">♡ Community</button>
+ <button data-page="stores">Stores</button>
+ <button data-page="collection">Collection</button>
+ <button data-page="wishlist">Wishlist</button>
+ <button data-page="profile">Profile</button>
+ <button id="adminTab" data-page="admin" class="hidden">Admin</button>
+</nav>
+
+<main>
+<section id="authView" class="panel auth">
+ <h2 class="title">Welcome, squishy hunter! ♡</h2>
+ <p class="muted">Create an account or sign in to join our community.</p>
+ <div class="row">
+  <button id="loginMode">Sign in</button>
+  <button id="signupMode" class="secondary">Create account</button>
+ </div>
+ <label>Email</label>
+ <input id="email" type="email" autocomplete="email" placeholder="Your email">
+ <label>Password</label>
+ <input id="password" type="password" placeholder="At least 6 characters">
+ <div id="signupFields" class="hidden">
+  <label>Display name</label>
+  <input id="displayName" maxlength="40" placeholder="Your display name">
+  <label>Username</label>
+  <input id="username" maxlength="24" placeholder="Your username">
+  <div class="rules">
+   <strong>Community rules ♡</strong><br><br>
+   1. Be kind and respectful to all members.<br>
+   2. Share accurate information about sightings and restocks.<br>
+   3. Never share another person's private information without permission.<br>
+   4. Keep posts relevant to squishies and our local community.<br>
+   5. No harassment, bullying, spam, scams or unsafe meet-up pressure.<br>
+   6. Respect store employees, shoppers and store policies.<br>
+   7. Report problems instead of arguing with members.<br>
+   8. Admins may remove content or restrict accounts to protect the community.
+  </div>
+  <label><input id="acceptRules" type="checkbox" style="width:auto"> I have read and agree to the community rules.</label>
+ </div>
+ <div class="actions"><button id="authSubmit">Sign in</button></div>
+ <p id="authMessage" class="muted"></p>
+</section>
+
+<section id="pendingView" class="panel hidden">
+ <h2 class="title">Your account is under review ♡</h2>
+ <p>Thank you for joining! New accounts are reviewed by an admin before posting access is enabled.</p>
+ <p class="muted">You can sign out below.</p>
+ <button id="pendingSignout" class="secondary">Sign out</button>
+</section>
+
+<section id="appView" class="hidden">
+ <div id="statusNotice" class="notice hidden"></div>
+
+ <section id="page-feed" class="page">
+  <div class="panel">
+   <div class="between">
+    <h2 class="title">Community sightings</h2>
+    <span class="pill">Greater Mankato</span>
+   </div>
+   <p class="muted">Share a new find, restock update or question.</p>
+   <div id="postComposer" class="hidden">
+    <label>Post type</label>
+    <select id="postType">
+     <option value="sighting">Squishy sighting</option>
+     <option value="restock">Restock update</option>
+     <option value="question">Question</option>
+     <option value="other">Community post</option>
+    </select>
+    <label>Title</label>
+    <input id="postTitle" maxlength="100" placeholder="What did you find?">
+    <label>Details</label>
+    <textarea id="postContent" maxlength="2000" placeholder="Store, location, availability and details..."></textarea>
+    <label>Store (optional)</label>
+    <select id="postStore"><option value="">Choose a store</option></select>
+    <label>Photo URL (optional)</label>
+    <input id="postPhoto" type="url" placeholder="https://...">
+    <div class="actions"><button id="publishPost">Share with community</button></div>
+   </div>
+   <div id="postingLocked" class="notice">Posting unlocks after an admin approves your account.</div>
+  </div>
+  <div id="feedList"></div>
+ </section>
+
+ <section id="page-stores" class="page hidden">
+  <div class="panel">
+   <h2 class="title">Local store directory</h2>
+   <p class="muted">Stores around Greater Mankato.</p>
+   <div id="storeAdminForm" class="hidden">
+    <label>Store name</label><input id="storeName">
+    <label>Address</label><input id="storeAddress">
+    <label>City</label><input id="storeCity" value="Mankato">
+    <label>Website</label><input id="storeWebsite" placeholder="https://...">
+    <label>Notes</label><textarea id="storeNotes"></textarea>
+    <button id="addStore">Add store</button>
+   </div>
+  </div>
+  <div id="storeList" class="grid"></div>
+ </section>
+
+ <section id="page-collection" class="page hidden">
+  <div class="panel">
+   <h2 class="title">My squishy collection</h2>
+   <label>Item name</label><input id="collectionName" placeholder="Squishy name">
+   <div class="row">
+    <div><label>Brand</label><input id="collectionBrand"></div>
+    <div><label>Size</label><input id="collectionSize" placeholder="e.g. 8 inch"></div>
+   </div>
+   <label>Photo URL (optional)</label><input id="collectionPhoto" type="url">
+   <button id="addCollection">Add to collection</button>
+  </div>
+  <div id="collectionList" class="grid"></div>
+ </section>
+
+ <section id="page-wishlist" class="page hidden">
+  <div class="panel">
+   <h2 class="title">My wishlist</h2>
+   <label>Item name</label><input id="wishName" placeholder="Squishy you want">
+   <label>Notes</label><textarea id="wishNotes" placeholder="Color, size or other details"></textarea>
+   <button id="addWish">Add to wishlist</button>
+  </div>
+  <div id="wishlistList"></div>
+ </section>
+
+ <section id="page-profile" class="page hidden">
+  <div class="panel">
+   <h2 class="title">My profile</h2>
+   <p id="profileEmail" class="muted"></p>
+   <label>Display name</label><input id="profileDisplay">
+   <label>Username</label><input id="profileUsername">
+   <label>Avatar URL</label><input id="profileAvatar" type="url">
+   <button id="saveProfile">Save profile</button>
+   <div class="actions"><button id="signout" class="secondary">Sign out</button></div>
+  </div>
+  <div class="panel">
+   <h3 class="title">My account notices</h3>
+   <div id="myActions"></div>
+  </div>
+ </section>
+
+ <section id="page-admin" class="page hidden">
+  <div class="panel">
+   <h2 class="title">Admin headquarters ♡</h2>
+   <p class="muted">Private tools for approved owner and admin accounts.</p>
+   <div class="row">
+    <div><strong id="pendingCount">0</strong><div class="tiny">Pending</div></div>
+    <div><strong id="reportCount">0</strong><div class="tiny">Open reports</div></div>
+    <div><strong id="memberCount">0</strong><div class="tiny">Profiles</div></div>
+   </div>
+  </div>
+  <div class="panel"><h3>Pending member approvals</h3><div id="pendingMembers"></div></div>
+  <div class="panel"><h3>Member directory</h3><div id="memberList"></div></div>
+  <div class="panel"><h3>Community reports</h3><div id="reportList"></div></div>
+  <div class="panel"><h3>Moderation history</h3><div id="moderationList"></div></div>
+  <div class="panel"><h3>Appeals</h3><div id="appealList"></div></div>
+  <div class="panel"><h3>Admin activity</h3><div id="activityList"></div></div>
+ </section>
+</section>
+
+<div class="footer">Made with ♡ for Greater Mankato squishy hunters</div>
+</main>
+
+<script>
+(() => {
+"use strict";
+
+/* SUPABASE CONNECTION */
+const SUPABASE_URL = "https://kznvzttdkfgurzbgknla.supabase.co";
+const SUPABASE_KEY = "sb_publishable_9iwwT_DcKP7Aeia3jZBbtA_zz9juS71";
+const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const RULES_VERSION = "1.0";
+
+let user = null;
+let profile = null;
+let stores = [];
+let authMode = "login";
+
+const $ = id => document.getElementById(id);
+const esc = value => String(value ?? "").replace(/[&<>"']/g,c=>({
+ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[c]));
+const date = value => value ? new Date(value).toLocaleString() : "";
+const errorMessage = error => alert(error?.message || "Something went wrong. Please try again.");
+const admin = () => profile && ["owner","admin"].includes(profile.role) && profile.account_status==="approved";
+const staff = () => profile && ["owner","admin","moderator"].includes(profile.role) && profile.account_status==="approved";
+const approved = () => profile && profile.account_status==="approved";
+const canPost = () => approved() && !!profile.rules_accepted_at;
+
+function showMessage(id,text,kind=""){
+ const el=$(id);
+ el.textContent=text;
+ el.className=kind ? "notice "+kind : "muted";
+}
+
+function showPage(name){
+ document.querySelectorAll(".page").forEach(el=>el.classList.add("hidden"));
+ $("page-"+name)?.classList.remove("hidden");
+ document.querySelectorAll(".tabs button").forEach(el=>{
+  el.classList.toggle("active",el.dataset.page===name);
+ });
+}
+
+async function logAdmin(action,details=""){
+ try{
+  await db.from("admin_activity").insert({
+   staff_id:user.id,action,details
+  });
+ }catch(error){console.warn("Admin activity log unavailable",error);}
+}
+
+/* SIGN IN / SIGN UP */
+function setAuthMode(mode){
+ authMode=mode;
+ $("signupFields").classList.toggle("hidden",mode!=="signup");
+ $("authSubmit").textContent=mode==="signup"?"Create account":"Sign in";
+ $("loginMode").classList.toggle("secondary",mode!=="login");
+ $("signupMode").classList.toggle("secondary",mode!=="signup");
+ showMessage("authMessage","");
+}
+$("loginMode").onclick=()=>setAuthMode("login");
+$("signupMode").onclick=()=>setAuthMode("signup");
+
+$("authSubmit").onclick=async()=>{
+ const email=$("email").value.trim();
+ const password=$("password").value;
+ if(!email||!password){showMessage("authMessage","Enter your email and password.");return;}
+ if(password.length<6){showMessage("authMessage","Password must be at least 6 characters.");return;}
+ $("authSubmit").disabled=true;
+ try{
+  if(authMode==="signup"){
+   const display_name=$("displayName").value.trim();
+   const username=$("username").value.trim().replace(/^@/,"");
+   if(!display_name||!username)throw new Error("Enter a display name and username.");
+   if(!$("acceptRules").checked)throw new Error("You must accept the community rules to create an account.");
+   const {data,error}=await db.auth.signUp({
+    email,password,
+    options:{data:{display_name}}
+   });
+   if(error)throw error;
+   if(data.user){
+    const {error:profileError}=await db.from("profiles").update({
+     username,display_name,
+     rules_accepted_at:new Date().toISOString(),
+     rules_version:RULES_VERSION
+    }).eq("id",data.user.id);
+    if(profileError)throw profileError;
+   }
+   showMessage("authMessage","Account created! Check your email to verify your address. Once verified, your account will be reviewed by an admin.","good");
+  }else{
+   const {error}=await db.auth.signInWithPassword({email,password});
+   if(error)throw error;
+   await refresh();
+  }
+ }catch(error){showMessage("authMessage",error.message,"bad");}
+ finally{$("authSubmit").disabled=false;}
+};
+
+/* SESSION AND PROFILE */
+async function refresh(){
+ const {data:{user:current}}=await db.auth.getUser();
+ user=current;
+ $("authView").classList.toggle("hidden",!!user);
+ $("pendingView").classList.add("hidden");
+ $("appView").classList.add("hidden");
+ $("tabs").classList.add("hidden");
+ if(!user)return;
+
+ const {data,error}=await db.from("profiles").select("*").eq("id",user.id).maybeSingle();
+ if(error)throw error;
+ profile=data;
+
+ if(!profile){
+  $("pendingView").classList.remove("hidden");
+  return;
+ }
+ if(["rejected","deactivated","fully_suspended"].includes(profile.account_status)){
+  $("pendingView").classList.remove("hidden");
+  $("pendingView").querySelector("h2").textContent="Account access is restricted";
+  $("pendingView").querySelector("p").textContent="This account cannot currently access the community. Please contact an admin if you believe this is a mistake.";
+  return;
+ }
+ if(profile.account_status==="pending"){
+  $("pendingView").classList.remove("hidden");
+  return;
+ }
+
+ $("appView").classList.remove("hidden");
+ $("tabs").classList.remove("hidden");
+ $("adminTab").classList.toggle("hidden",!admin());
+
+ $("statusNotice").classList.toggle("hidden",profile.account_status!=="posting_suspended");
+ $("statusNotice").textContent=profile.account_status==="posting_suspended"
+  ?"Your account currently has posting restrictions. You can still browse the community."
+  :"";
+
+ $("postComposer").classList.toggle("hidden",!canPost());
+ $("postingLocked").classList.toggle("hidden",canPost());
+
+ $("profileEmail").textContent=user.email||"";
+ $("profileDisplay").value=profile.display_name||"";
+ $("profileUsername").value=profile.username||"";
+ $("profileAvatar").value=profile.avatar_url||"";
+
+ await loadAll();
+}
+
+async function loadAll(){
+ await Promise.all([
+  loadStores(),loadFeed(),loadCollection(),loadWishlist(),loadMyActions()
+ ]);
+ if(admin())await loadAdmin();
+}
+
+$("pendingSignout").onclick=$("signout").onclick=async()=>{
+ await db.auth.signOut();
+ await refresh();
+};
+
+/* STORE DIRECTORY */
+async function loadStores(){
+ const {data,error}=await db.from("stores").select("*").order("name");
+ if(error)throw error;
+ stores=data||[];
+
+ $("storeList").innerHTML=stores.length?stores.map(s=>`
+  <article class="item">
+   <strong>${esc(s.name)}</strong>
+   <p class="muted">${esc([s.address,s.city].filter(Boolean).join(", "))}</p>
+   ${s.website?`<a href="${esc(s.website)}" target="_blank" rel="noopener">Store website</a>`:""}
+   ${s.notes?`<p>${esc(s.notes)}</p>`:""}
+   ${admin()?`<button class="danger small" data-delete-store="${s.id}">Delete store</button>`:""}
+  </article>
+ `).join(""):'<div class="empty">No stores have been added yet.</div>';
+
+ $("postStore").innerHTML='<option value="">Choose a store</option>'+
+  stores.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("");
+ $("storeAdminForm").classList.toggle("hidden",!admin());
+
+ document.querySelectorAll("[data-delete-store]").forEach(button=>{
+  button.onclick=async()=>{
+   if(!confirm("Delete this store?"))return;
+   try{
+    const {error}=await db.from("stores").delete().eq("id",button.dataset.deleteStore);
+    if(error)throw error;
+    await loadStores();
+   }catch(error){errorMessage(error);}
+  };
+ });
+}
+
+$("addStore").onclick=async()=>{
+ try{
+  const payload={
+   name:$("storeName").value.trim(),
+   address:$("storeAddress").value.trim()||null,
+   city:$("storeCity").value.trim()||"Mankato",
+   website:$("storeWebsite").value.trim()||null,
+   notes:$("storeNotes").value.trim()||null
+  };
+  if(!payload.name)throw new Error("Enter a store name.");
+  const {error}=await db.from("stores").insert(payload);
+  if(error)throw error;
+  ["storeName","storeAddress","storeWebsite","storeNotes"].forEach(id=>$(id).value="");
+  await loadStores();
+ }catch(error){errorMessage(error);}
+};
+
+/* COMMUNITY POSTS AND COMMENTS */
+async function loadFeed(){
+ const {data:posts,error}=await db.from("posts")
+  .select("*,profiles(username,display_name),stores(name)")
+  .eq("is_removed",false)
+  .order("created_at",{ascending:false})
+  .limit(80);
+ if(error)throw error;
+
+ const postIds=(posts||[]).map(p=>p.id);
+ let comments=[];
+ if(postIds.length){
+  const result=await db.from("comments")
+   .select("*,profiles(username,display_name)")
+   .in("post_id",postIds)
+   .eq("is_removed",false)
+   .order("created_at");
+  if(result.error)throw result.error;
+  comments=result.data||[];
+ }
+
+ $("feedList").innerHTML=(posts||[]).length?posts.map(p=>{
+  const postComments=comments.filter(c=>c.post_id===p.id);
+  return `
+   <article class="post">
+    <div class="between">
+     <span class="pill">${esc(p.post_type||"sighting")}</span>
+     <span class="tiny">${date(p.created_at)}</span>
+    </div>
+    <h3>${esc(p.title)}</h3>
+    <div class="tiny">by ${esc(p.profiles?.display_name||p.profiles?.username||"Community member")}
+     ${p.stores?.name?" · "+esc(p.stores.name):""}
+    </div>
+    ${p.content?`<p>${esc(p.content)}</p>`:""}
+    ${p.photo_url?`<img src="${esc(p.photo_url)}" alt="Community sighting" loading="lazy" onerror="this.style.display='none'">`:""}
+    <div class="actions">
+     <button class="secondary small" data-report-post="${p.id}">Report</button>
+     ${(p.author_id===user.id||admin())?`<button class="danger small" data-remove-post="${p.id}">Remove post</button>`:""}
+    </div>
+    <div class="tiny">Comments (${postComments.length})</div>
+    ${postComments.map(c=>`
+     <div class="notice">
+      <strong>${esc(c.profiles?.display_name||c.profiles?.username||"Member")}</strong>:
+      ${esc(c.content)}
+      <div class="tiny">${date(c.created_at)}</div>
+     </div>
+    `).join("")}
+    ${canPost()?`
+     <div class="row">
+      <input id="comment-${p.id}" maxlength="800" placeholder="Write a kind comment...">
+      <button class="small" data-comment="${p.id}">Send</button>
+     </div>
+    `:""}
+   </article>
+  `;
+ }).join(""):'<div class="panel empty">No community posts yet. Share the first sighting when your account is approved! ♡</div>';
+
+ document.querySelectorAll("[data-comment]").forEach(button=>{
+  button.onclick=async()=>{
+   try{
+    const content=$("comment-"+button.dataset.comment).value.trim();
+    if(!content)return;
+    const {error}=await db.from("comments").insert({
+     post_id:button.dataset.comment,
+     author_id:user.id,
+     content
+    });
+    if(error)throw error;
+    await loadFeed();
+   }catch(error){errorMessage(error);}
+  };
+ });
+
+ document.querySelectorAll("[data-report-post]").forEach(button=>{
+  button.onclick=()=>reportItem({post_id:button.dataset.reportPost});
+ });
+
+ document.querySelectorAll("[data-remove-post]").forEach(button=>{
+  button.onclick=async()=>{
+   if(!confirm("Remove this post?"))return;
+   try{
+    const {error}=await db.from("posts").update({is_removed:true}).eq("id",button.dataset.removePost);
+    if(error)throw error;
+    await loadFeed();
+   }catch(error){errorMessage(error);}
+  };
+ });
+}
+
+$("publishPost").onclick=async()=>{
+ try{
+  if(!canPost())throw new Error("Your account must be approved and have accepted the rules before posting.");
+  const title=$("postTitle").value.trim();
+  if(!title)throw new Error("Enter a post title.");
+  const payload={
+   author_id:user.id,
+   post_type:$("postType").value,
+   title,
+   content:$("postContent").value.trim()||null,
+   store_id:$("postStore").value||null,
+   photo_url:$("postPhoto").value.trim()||null
+  };
+  const {error}=await db.from("posts").insert(payload);
+  if(error)throw error;
+  ["postTitle","postContent","postPhoto"].forEach(id=>$(id).value="");
+  await loadFeed();
+ }catch(error){errorMessage(error);}
+};
+
+async function reportItem(target){
+ const category=prompt("What is the concern? (spam, harassment, inaccurate information, other)");
+ if(!category)return;
+ const details=prompt("Additional details (optional):")||null;
+ try{
+  const {error}=await db.from("reports").insert({
+   reporter_id:user.id,...target,category,details
+  });
+  if(error)throw error;
+  alert("Your report was submitted for review.");
+ }catch(error){errorMessage(error);}
+}
+
+/* PERSONAL COLLECTION */
+async function loadCollection(){
+ const {data,error}=await db.from("collection_items").select("*")
+  .eq("member_id",user.id).order("created_at",{ascending:false});
+ if(error)throw error;
+
+ $("collectionList").innerHTML=(data||[]).length?data.map(item=>`
+  <article class="item">
+   ${item.photo_url?`<img src="${esc(item.photo_url)}" alt="" loading="lazy">`:""}
+   <strong>${esc(item.item_name)}</strong>
+   <p class="muted">${esc([item.brand,item.size].filter(Boolean).join(" · "))}</p>
+   <button class="danger small" data-delete-collection="${item.id}">Delete</button>
+  </article>
+ `).join(""):'<div class="empty">Your collection is waiting for its first squishy! ♡</div>';
+
+ document.querySelectorAll("[data-delete-collection]").forEach(button=>{
+  button.onclick=async()=>{
+   try{
+    const {error}=await db.from("collection_items").delete().eq("id",button.dataset.deleteCollection);
+    if(error)throw error;
+    await loadCollection();
+   }catch(error){errorMessage(error);}
+  };
+ });
+}
+
+$("addCollection").onclick=async()=>{
+ try{
+  const item_name=$("collectionName").value.trim();
+  if(!item_name)throw new Error("Enter an item name.");
+  const {error}=await db.from("collection_items").insert({
+   member_id:user.id,
+   item_name,
+   brand:$("collectionBrand").value.trim()||null,
+   size:$("collectionSize").value.trim()||null,
+   photo_url:$("collectionPhoto").value.trim()||null
+  });
+  if(error)throw error;
+  ["collectionName","collectionBrand","collectionSize","collectionPhoto"].forEach(id=>$(id).value="");
+  await loadCollection();
+ }catch(error){errorMessage(error);}
+};
+
+/* WISHLIST */
+async function loadWishlist(){
+ const {data,error}=await db.from("wishlist_items").select("*")
+  .eq("member_id",user.id).order("created_at",{ascending:false});
+ if(error)throw error;
+
+ $("wishlistList").innerHTML=(data||[]).length?data.map(item=>`
+  <article class="item">
+   <div class="between">
+    <strong>${esc(item.item_name)}</strong>
+    <button class="danger small" data-delete-wish="${item.id}">Delete</button>
+   </div>
+   ${item.notes?`<p>${esc(item.notes)}</p>`:""}
+   <div class="tiny">${date(item.created_at)}</div>
+  </article>
+ `).join(""):'<div class="empty">Your wishlist is empty for now ♡</div>';
+
+ document.querySelectorAll("[data-delete-wish]").forEach(button=>{
+  button.onclick=async()=>{
+   try{
+    const {error}=await db.from("wishlist_items").delete().eq("id",button.dataset.deleteWish);
+    if(error)throw error;
+    await loadWishlist();
+   }catch(error){errorMessage(error);}
+  };
+ });
+}
+
+$("addWish").onclick=async()=>{
+ try{
+  const item_name=$("wishName").value.trim();
+  if(!item_name)throw new Error("Enter an item name.");
+  const {error}=await db.from("wishlist_items").insert({
+   member_id:user.id,
+   item_name,
+   notes:$("wishNotes").value.trim()||null
+  });
+  if(error)throw error;
+  $("wishName").value="";
+  $("wishNotes").value="";
+  await loadWishlist();
+ }catch(error){errorMessage(error);}
+};
+
+/* PROFILE */
+$("saveProfile").onclick=async()=>{
+ try{
+  const {error}=await db.from("profiles").update({
+   display_name:$("profileDisplay").value.trim(),
+   username:$("profileUsername").value.trim().replace(/^@/,""),
+   avatar_url:$("profileAvatar").value.trim()||null
+  }).eq("id",user.id);
+  if(error)throw error;
+  alert("Profile saved!");
+  await refresh();
+ }catch(error){errorMessage(error);}
+};
+
+async function loadMyActions(){
+ const {data,error}=await db.from("moderation_actions").select("*")
+  .eq("member_id",user.id).order("created_at",{ascending:false});
+ if(error){$("myActions").textContent="No account notices available.";return;}
+
+ $("myActions").innerHTML=(data||[]).length?data.map(action=>`
+  <div class="notice">
+   <strong>${esc(action.action_type.replaceAll("_"," "))}</strong>
+   <p>${esc(action.reason)}</p>
+   ${action.details?`<p>${esc(action.details)}</p>`:""}
+   <span class="tiny">${date(action.created_at)}</span>
+   ${action.action_type!=="warning"&&action.status==="active"
+    ?`<button class="secondary small" data-appeal="${action.id}">Appeal this action</button>`:""}
+  </div>
+ `).join(""):'<p class="muted">No account notices.</p>';
+
+ document.querySelectorAll("[data-appeal]").forEach(button=>{
+  button.onclick=async()=>{
+   const explanation=prompt("Explain why you are appealing this action:");
+   if(!explanation)return;
+   try{
+    const {error}=await db.from("appeals").insert({
+     action_id:button.dataset.appeal,
+     member_id:user.id,
+     explanation
+    });
+    if(error)throw error;
+    alert("Your appeal was submitted.");
+    await loadMyActions();
+   }catch(error){errorMessage(error);}
+  };
+ });
+}
+
+/* ADMIN DASHBOARD */
+async function loadAdmin(){
+ if(!admin())return;
+
+ const results=await Promise.all([
+  db.from("profiles").select("*").order("created_at",{ascending:false}),
+  db.from("reports").select("*").order("created_at",{ascending:false}),
+  db.from("moderation_actions").select("*").order("created_at",{ascending:false}).limit(100),
+  db.from("appeals").select("*").order("created_at",{ascending:false}),
+  db.from("admin_activity").select("*").order("created_at",{ascending:false}).limit(50)
+ ]);
+
+ const profiles=results[0].data||[];
+ const reports=results[1].data||[];
+ const actions=results[2].data||[];
+ const appeals=results[3].data||[];
+ const activity=results[4].data||[];
+
+ results.forEach(result=>{if(result.error)console.warn(result.error);});
+
+ $("pendingCount").textContent=profiles.filter(p=>p.account_status==="pending").length;
+ $("reportCount").textContent=reports.filter(r=>r.status!=="resolved").length;
+ $("memberCount").textContent=profiles.length;
+
+ $("pendingMembers").innerHTML=profiles.filter(p=>p.account_status==="pending").map(p=>`
+  <div class="item">
+   <strong>${esc(p.display_name||p.username||"New member")}</strong>
+   <p class="tiny">${esc(p.username||"No username")} · ${date(p.created_at)}</p>
+   <div class="actions">
+    <button class="small" data-approve="${p.id}">Approve</button>
+    <button class="danger small" data-reject="${p.id}">Reject</button>
+   </div>
+  </div>
+ `).join("")||'<p class="muted">No pending members.</p>';
+
+ $("memberList").innerHTML=profiles.map(p=>`
+  <div class="item">
+   <div class="between">
+    <strong>${esc(p.display_name||p.username||"Member")}</strong>
+    <span class="pill">${esc(p.role)} · ${esc(p.account_status)}</span>
+   </div>
+   <p class="tiny">${esc(p.username||"")} · ${p.id}</p>
+   <div class="actions">
+    <button class="small secondary" data-moderate="${p.id}" data-kind="warning">Warn</button>
+    <button class="small secondary" data-moderate="${p.id}" data-kind="posting_suspension">Suspend posting</button>
+    <button class="small danger" data-moderate="${p.id}" data-kind="full_suspension">Fully suspend</button>
+    ${p.account_status!=="approved"?`<button class="small" data-approve="${p.id}">Approve</button>`:""}
+   </div>
+  </div>
+ `).join("");
+
+ $("reportList").innerHTML=reports.map(r=>`
+  <div class="item">
+   <strong>${esc(r.category)}</strong>
+   <p>${esc(r.details||"No details provided.")}</p>
+   <p class="tiny">${esc(r.status)} · ${date(r.created_at)}</p>
+   <div class="actions">
+    <button class="small secondary" data-report-status="${r.id}" data-status="under_review">Review</button>
+    <button class="small" data-report-status="${r.id}" data-status="resolved">Resolve</button>
+   </div>
+  </div>
+ `).join("")||'<p class="muted">No reports.</p>';
+
+ $("moderationList").innerHTML=actions.map(a=>`
+  <div class="item">
+   <strong>${esc(a.action_type.replaceAll("_"," "))}</strong>
+   <p>${esc(a.reason)}${a.details?" — "+esc(a.details):""}</p>
+   <p class="tiny">Member ${a.member_id.slice(0,8)} · ${date(a.created_at)}</p>
+  </div>
+ `).join("")||'<p class="muted">No moderation actions.</p>';
+
+ $("appealList").innerHTML=appeals.map(a=>`
+  <div class="item">
+   <strong>Appeal · ${esc(a.status)}</strong>
+   <p>${esc(a.explanation)}</p>
+   <p class="tiny">Member ${a.member_id.slice(0,8)} · ${date(a.created_at)}</p>
+   <label>Staff notes</label>
+   <input id="appeal-notes-${a.id}" value="${esc(a.staff_notes||"")}">
+   <div class="actions">
+    <button class="small" data-appeal-status="${a.id}" data-status="reversed">Reverse action</button>
+    <button class="small secondary" data-appeal-status="${a.id}" data-status="upheld">Uphold action</button>
+    <button class="small secondary" data-appeal-status="${a.id}" data-status="under_review">Under review</button>
+   </div>
+  </div>
+ `).join("")||'<p class="muted">No appeals.</p>';
+
+ $("activityList").innerHTML=activity.map(a=>`
+  <div class="tiny">${date(a.created_at)} · ${esc(a.action)} — ${esc(a.details||"")}</div>
+ `).join("")||'<p class="muted">No activity recorded.</p>';
+
+ document.querySelectorAll("[data-approve]").forEach(button=>{
+  button.onclick=()=>setMemberStatus(button.dataset.approve,"approved");
+ });
+ document.querySelectorAll("[data-reject]").forEach(button=>{
+  button.onclick=()=>setMemberStatus(button.dataset.reject,"rejected");
+ });
+ document.querySelectorAll("[data-moderate]").forEach(button=>{
+  button.onclick=()=>moderateMember(button.dataset.moderate,button.dataset.kind);
+ });
+ document.querySelectorAll("[data-report-status]").forEach(button=>{
+  button.onclick=async()=>{
+   try{
+    const {error}=await db.from("reports").update({status:button.dataset.status}).eq("id",button.dataset.reportStatus);
+    if(error)throw error;
+    await logAdmin("report_status",button.dataset.reportStatus+": "+button.dataset.status);
+    await loadAdmin();
+   }catch(error){errorMessage(error);}
+  };
+ });
+ document.querySelectorAll("[data-appeal-status]").forEach(button=>{
+  button.onclick=async()=>{
+   try{
+    const id=button.dataset.appealStatus;
+    const status=button.dataset.status;
+    const staff_notes=$("appeal-notes-"+id).value.trim()||null;
+    const {error}=await db.from("appeals").update({status,staff_notes}).eq("id",id);
+    if(error)throw error;
+
+    if(status==="reversed"){
+     const appeal=appeals.find(a=>a.id===id);
+     if(appeal){
+      const {data:action}=await db.from("moderation_actions")
+       .select("member_id,action_type").eq("id",appeal.action_id).maybeSingle();
+      if(action){
+       const {error:actionError}=await db.from("moderation_actions")
+        .update({status:"reversed"}).eq("id",appeal.action_id);
+       if(actionError)throw actionError;
+       const {error:profileError}=await db.from("profiles")
+        .update({account_status:"approved"}).eq("id",action.member_id);
+       if(profileError)throw profileError;
+      }
+     }
+    }
+    await logAdmin("appeal_review",id+": "+status);
+    await loadAdmin();
+   }catch(error){errorMessage(error);}
+  };
+ });
+}
+
+async function setMemberStatus(id,status){
+ try{
+  const {error}=await db.from("profiles").update({account_status:status}).eq("id",id);
+  if(error)throw error;
+  await logAdmin("member_status",id+": "+status);
+  await loadAdmin();
+ }catch(error){errorMessage(error);}
+}
+
+async function moderateMember(member_id,action_type){
+ const reason=prompt("Reason for this moderation action:");
+ if(!reason)return;
+ const details=prompt("Additional details (optional):")||null;
+ const duration=action_type==="warning"?null:(prompt("Duration (for example: 7 days or indefinite):")||"Indefinite");
+ try{
+  const {error}=await db.from("moderation_actions").insert({
+   member_id,
+   staff_id:user.id,
+   action_type,
+   reason,
+   details,
+   duration
+  });
+  if(error)throw error;
+
+  const account_status=action_type==="warning"?"approved":
+   action_type==="posting_suspension"?"posting_suspended":"fully_suspended";
+
+  const {error:profileError}=await db.from("profiles")
+   .update({account_status}).eq("id",member_id);
+  if(profileError)throw profileError;
+
+  await logAdmin(action_type,member_id+": "+reason);
+  await loadAdmin();
+ }catch(error){errorMessage(error);}
+}
+
+/* NAVIGATION */
+document.querySelectorAll(".tabs button").forEach(button=>{
+ button.onclick=()=>showPage(button.dataset.page);
+});
+
+/* START */
+db.auth.onAuthStateChange(()=>{
+ setTimeout(()=>refresh().catch(errorMessage),0);
+});
+refresh().catch(errorMessage);
+
+})();
+</script>
+</body>
+</html>
