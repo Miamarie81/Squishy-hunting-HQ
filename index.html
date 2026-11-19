@@ -297,9 +297,12 @@ $("authSubmit").onclick=async()=>{
    if(!display_name||!username)throw new Error("Enter a display name and username.");
    if(!$("acceptRules").checked)throw new Error("You must accept the community rules to create an account.");
    const {data,error}=await db.auth.signUp({
-    email,password,
-    options:{data:{display_name}}
-   });
+ email,password,
+ options:{
+  emailRedirectTo:"https://miamarie81.github.io/Squishy-hunting-HQ/",
+  data:{display_name}
+ }
+});
    if(error)throw error;
    if(data.user){
     const {error:profileError}=await db.from("profiles").update({
